@@ -67,7 +67,6 @@ jobs:
           previous_head: ${{ github.event.client_payload.previous_head }}
           new_head: ${{ github.event.client_payload.new_head }}
           branch_name: ${{ github.event.client_payload.branch_name }}
-          required_count: 2
         with:
           script: |
             // Load checkout details
@@ -79,7 +78,12 @@ jobs:
             console.log(`Previous HEAD: ${previous_head}`);
             console.log(`New HEAD: ${new_head}`);
             console.log(`Branch Name: ${branch_name}`);
-            // (check pending)
+            if (!previous_head || !new_head) {
+              throw new Error("Checkout event did not include both commit IDs.");
+            }
+            if (branch_name !== "main" || previous_head === new_head) {
+              throw new Error("Checkout did not return from a past commit to the latest commit on main.");
+            }
 
       - name: Update comment - step results
         uses: GrantBirki/comment@v2.1.1
